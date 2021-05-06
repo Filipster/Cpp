@@ -1,0 +1,400 @@
+#include <cmath>
+#include <vector>
+
+//Floating point arithmetic is inaccurate, e.g. if you multiply a float by 3 and then divide it by 3, the result may differ a little bit from the initial value. Thus, when comparing two floating point numbers you should define a maximum allowed error for equality. 
+//You can define a function for that:
+const double EPS = 10e-6;
+bool def(double a, double b) {
+    return std::fabs(a - b) < EPS;
+}
+
+
+struct vector {
+    double x;
+    double y;
+
+    vector () {
+        y = 0;
+		 x = 0;
+    }
+    explicit vector(const double& x, const double& y) : x(x), y(y){};
+    ~vector() = default;
+    double length() const{
+        return sqrt(pow(x, 2) + pow(y, 2));
+    }
+
+    vector& operator+= (const vector& df) {
+        y += df.x;
+        x += df.y;
+        return *this;
+    }
+    vector& operator-= (const vector& df) {
+        y -= df.x;
+        x -= df.y;
+        return *this;
+    }
+    vector& operator*= (const double numb) {
+        y *= numb;
+        x *= numb;
+        return *this;
+    }
+    vector& operator/= (const double numb) {
+        y /= numb;
+        x /= numb;
+        return *this;
+    }
+
+    vector operator+ () const {
+        return *this;
+    }
+    vector operator- () const {
+        vector grad(-x, -y);
+        return grad;
+    }
+
+
+};
+vector operator+ (const vector& primeiro, const vector& segundo) {
+    return vector(primeiro.x + segundo.x, primeiro.y + segundo.y);
+}
+vector operator- (const vector& primeiro, const vector& segundo) {
+    return vector(primeiro.x - segundo.x, primeiro.y - segundo.y);
+}
+
+vector operator* (const vector& primeiro, const double& numb) {
+    return vector(primeiro.x * numb, primeiro.y * numb);
+}
+vector operator* (const double& numb, const vector& primeiro) {
+    return vector(primeiro.x * numb, primeiro.y * numb);
+}
+vector operator/ (const double& numb, const vector& primeiro) {
+    return vector(numb /primeiro.x, numb /primeiro.y);
+}
+
+vector operator/ (const vector& primeiro, const double& numb) {
+    return vector(primeiro.x / numb, primeiro.y / numb);
+}
+
+bool operator== (const shape& primeiro, const shape& segundo) {
+    return !(primeiro< segundo) && !(segundo< primeiro);
+}
+bool operator!= (const vector& primeiro, const vector& segundo) {
+    return !(primeiro == segundo);
+}
+
+double dot_product (const vector& lhs, const vector& rhs) {
+    return (lhs.x*rhs.x + lhs.y*rhs.y);
+}
+double cross_product (const vector& lhs, const vector& rhs) {
+    double cross_operator = lhs.x*rhs.y - rhs.x*lhs.y;
+    return cross_operator;
+}
+bool collinear (const vector& lhs, const vector& rhs) {
+    return def(cross_product(lhs, rhs), 0);
+}
+//Shape: 1pts
+class shape {
+public:
+	
+	virtual void rotate(double declive) = 0;
+    virtual void translate(const vector& muda) = 0;
+    virtual void scale(double sentido) = 0;
+    
+    virtual double perimeter () const = 0;
+    virtual double area () const = 0;
+    virtual vector center() const = 0;
+    
+    virtual bool congruent_to(const shape& another) const = 0;
+     virtual bool operator== (const shape& another) const = 0;
+    virtual bool operator!= (const shape& another) const = 0;
+
+
+
+    
+};
+//Circle: 1pts
+//Polygon: 5pts
+class polygon: public shape {
+public:
+    std::vector<vector> coords;
+    std::vector<vector> coords_soma;
+    
+    //Class polygon. Subclass of shape. Constructible from std::vector<vector> containing points in the order of traversal. It is guaranteed, that points won't define a self-intersecting polygon. A polygon should be able to tell its vertices_count() - number of vertices, and std::vector<vector> get_vertices() 
+	//- immutable std::vector of vertices in counter-clockwise order.
+
+    polygon() {
+        std::vector<vector> grad_coords = {vector(0,0)};
+        coords = grad_coords;
+        coords_soma = grad_coords;
+    };
+    explicit polygon(const std::vector<vector>& coords_vrt) : coords(coords_vrt){
+    
+    }
+    int vertices_count() const {
+        return coords.size();
+    }
+    const std::vector<vector>& get_vertices() const {
+        return coords_soma;
+    }
+
+    double perimeter () const override {
+        double sum = 0;
+        for (size_t i = 0; i < coords.size(); i++) { 
+            sum += sqrt(pow((coords[(i+1) % coords.size()].x - coords[i].x), 2)+ pow((coords[(i+1) % coords.size()].y - coords[i].y), 2)
+            );
+        }
+        return sum;
+    }
+    double area () const override {
+        double sum = 0;
+        for (size_t i = 0; i < coords.size(); i++) {
+            sum += cross_product(vector(coords[i].x, coords[i].y), vector(coords[(i+1) % coords.size()].x - coords[i].x, coords[(i+1) % coords.size()].y - coords[i].y));
+        }
+        sum = fabs(sum)/2.;
+
+        return sum;
+    }
+    vector center() const override {
+        size_t n = coords.size();
+        double grad_x = 0;
+        double grad_y = 0;
+
+        for (size_t i = 0; i < n; i++) {
+            grad_x += coords[i].x;
+            grad_y += coords[i].y;
+        }
+        grad_x /= n;
+        grad_y /= n;
+        vector grad_vector(grad_x, grad_y);
+        return grad_vector;
+    }
+
+
+    void rotate(double declive) override {
+        const vector center_coord = center();
+        std::vector<vector> valor_coords(coords.size());
+
+        for (size_t i = 0; i < coords.size(); i++) {
+            valor_coords[i] = coords[i] - center_coord;
+            vector grad_direcao = valor_coords[i];
+            vector grad_direcao1;
+            grad_direcao1.x = grad_direcao.x*cos(declive) - grad_direcao.y*sin(declive);
+            grad_direcao1.y = grad_direcao.x*sin(declive) + grad_direcao.y*cos(declive);
+            valor_coords[i] = grad_direcao1;
+            valor_coords[i] += center_coord;
+
+            coords[i] = valor_coords[i];
+        }
+    }
+    void translate(const vector& muda) override {
+        for (size_t i = 0; i < coords.size(); i++) {
+            coords[i] += muda;
+        }
+    }
+
+    void scale(double sentido) override {
+        const vector center_coord = center();
+        std::vector<vector> valor_coords(coords.size());
+        for (size_t i = 0; i < coords.size(); i++) {
+            valor_coords[i] = coords[i] - center_coord;
+
+            valor_coords[i] *= sentido;
+            valor_coords[i] += center_coord;
+            coords[i] = valor_coords[i];
+        }
+    }
+    
+    bool operator== (const shape& another) const override {
+    }
+
+    bool congruent_to(const shape& another) const override {
+    }
+
+};
+class circle: public shape {
+public:
+    vector _center;
+    double _radius;
+    ~circle() = default;
+    circle() : _center(vector(0,0)), _radius(1) {};
+    explicit circle(const vector& center, const double& radius) : _center(center), _radius(radius){};
+    //Class circle. Subclass of shape. Constructible from a vector and a number (center and radius). 
+	//Should be able to tell its double radius()
+    
+
+
+    double radius() const {
+        return _radius;
+        
+        //Class rectangle. Subclass of polygon. Constructible from a vector and two doubles (center, height and width). Should contain method vector center() that returns the center of a rectangle. 
+		//Also should be able to tell it's height() and width()
+    }
+    double area () const override {
+        return (pow(_radius, 2) * M_PI);
+    }
+    double perimeter () const override {
+        return 2*M_PI*_radius;
+    }
+    vector center() const override {
+        return _center;
+    }
+
+    void rotate(double declive) override{};
+    void translate(const vector& muda) override{
+        _center += muda;
+    };
+    void scale(double sentido) override{
+        _radius *= fabs(sentido);
+
+    };
+
+    bool operator== (const shape& another) const override {
+        try {
+            const circle &grad = dynamic_cast<const circle &>(another);
+            return (def(radius(), grad.radius()) && center() == grad.center());
+        } catch (std::bad_cast& bad_a) {
+            return false;
+        }
+
+    }
+    bool operator!= (const shape& another) const override {
+        return !operator==(another);
+    }
+
+    bool congruent_to(const shape& another) const override {
+        try {
+            const circle &grad = dynamic_cast<const circle &>(another);
+            return (radius() == grad.radius());
+        } catch (std::bad_cast& bad_a) {
+            return false;
+        }
+    }
+
+//Class triangle. Subclass of polygon. Constructible from three vectors. 
+//Should be able to return its circle circumscribed_circle() and circle inscribed_circle().
+};
+class rectangle: public polygon {
+private:
+    vector _center;
+    double _height;
+    double _width;
+public:
+    explicit rectangle(const vector& center, const double& height, const double& width) : polygon(std::vector<vector>{
+            vector(center.x + width/2, center.y + height/2), vector(center.x - width/2, center.y + height/2),
+            vector(center.x - width/2, center.y - height/2), vector(center.x + width/2, center.y - height/2)
+    }) {
+        _center = center;_height = height;_width = width;
+    };
+
+    vector center() const{
+        return _center;
+    }
+    
+    double area() const {
+        return _height * _width;
+    
+    }
+    double height() const{
+        return _height;
+    }
+    double width() const{
+        return _width;
+    }
+
+    double perimeter() const {
+        return 2*_height + 2*_width;
+    }
+
+    bool congruent_to(const shape& another) const override 
+	{
+        try {
+            const rectangle &grad = dynamic_cast<const rectangle &>(another);
+            
+            return (height() == grad.height() && width() == grad.width());
+        } catch (std::bad_cast& bad_a) 
+		{
+            return false;
+        }
+    }
+    void scale(double sentido) override {
+        const vector center_coord = center();
+        std::vector<vector> valor_coords(coords.size());
+        for (size_t i = 0; i < coords.size(); i++) {
+            valor_coords[i] = coords[i] - center_coord;
+
+            valor_coords[i] *= sentido;
+            valor_coords[i] += center_coord;
+            coords[i] = valor_coords[i];
+        }
+        _width *= fabs(sentido);
+        _height *= fabs(sentido);
+        ///mudei a posicao aqui//////////////////////////////////////////////////////////////////////////////////
+    }
+    bool operator== (const shape& another) const override {
+        try {
+            const rectangle &grad = dynamic_cast<const rectangle &>(another);
+
+            return (def(width(), grad.width()) && def(height(), grad.height()));
+        } catch (std::bad_cast& bad_a) {
+            return false;
+        }
+
+    }
+    bool operator!= (const shape& another) const override {
+        return !operator==(another);
+    }
+
+};
+class square: public rectangle {
+public:
+    double _side;
+    vector _center;
+    explicit square(const vector& center, double side) : rectangle(center, side, side), _side(side), _center(center){};
+
+    double side() const {
+        return _side;
+    }
+    circle circumscribed_circle() const {
+        circle grad(_center, _side * sqrt(2)/2);
+        return grad;
+    }
+    circle inscribed_circle() const {
+        circle grad(_center, _side/2);
+        return grad;
+    }
+    bool operator== (const shape& another) const override {
+        try {
+            const square &grad = dynamic_cast<const square&>(another);
+            return (def(side(), grad.side()));
+        } catch (std::bad_cast& bad_a) {
+            return false;
+        }
+
+    }
+    bool operator!= (const shape& another) const override {
+        return !operator==(another);
+    }
+    bool congruent_to(const shape& another) const override {
+        try {
+            const square &grad = dynamic_cast<const square &>(another);
+            return (side() == grad.side());
+        } catch (std::bad_cast& bad_a) {
+            return false;
+        }
+    }
+
+
+};
+class triangle: public polygon {
+public:
+    triangle(const vector& coord0, const vector& coord1, const vector& coord2) : polygon(std::vector<vector>
+	{
+        coord0, coord1, coord2
+    }) {};
+	
+};
+
+
+
+
+
