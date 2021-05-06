@@ -1,0 +1,42 @@
+//by-me-in-2021
+
+#include <iostream>
+using namespace std;
+
+int binary_s(int array[], int left, int right, int x) {
+  if(right >= left) {
+    int m = left + (right - left) / 2;  
+    if (array[m] == x)
+      return m; 
+    if ((array[m] < x) && (array[m + 1] > x))
+      return m;
+    if (array[m] > x)
+      return binary_s(array, left, m, x);
+    return binary_s(array, m, right, x);
+	}
+    return left;
+  }
+
+  int main() {
+  int n, e;
+  std::cin >> n;
+  int *A = new int[n];
+  for (int i = 0; i < n; i++){
+    std::cin >> A[i];
+  }
+  std::cin >> e;
+  if (A[n - 1] < e){
+    std::cout << -42;
+    delete[] A;
+    return 0;
+  }
+  if(A[0] > e){
+    std::cout << -42;
+    delete[] A;
+    return 0;
+  }
+std::cout << binary_s(A, 0, n, e);
+delete[] A;
+return 0;
+}
+
