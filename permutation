@@ -1,0 +1,343 @@
+#ifndef PERMUTATION_SRC_PERMUTATION_H
+#define PERMUTATION_SRC_PERMUTATION_H
+#include <array>
+#include <algorithm>
+#include <iostream>
+
+
+/////////////
+////////////////////////////
+/////PERMUTATION
+/////////////////////
+
+void swap(unsigned &x, unsigned &y);
+
+void swap(unsigned &x, unsigned &y)
+
+{
+	unsigned temp = x;
+	x = y;
+	y = temp;
+	
+}
+
+template <std::size_t N> 
+//std::size_T N && std::cout<
+
+////DEF CLASS
+
+//class permutacao{
+				
+class permutation {
+	private:
+		unsigned Array[N];
+
+	public:
+		permutation();
+		permutation(unsigned *array);
+		permutation(const permutation &per);
+		permutation& operator=(const permutation &per);
+		permutation operator*(const permutation &per) const;
+
+		permutation& operator*=(const permutation &per);
+
+// operators
+		permutation& operator++();
+		permutation operator++(int);
+		permutation& operator--();
+		permutation operator--(int);
+
+		bool operator==(const permutation &per) const;
+		bool operator!=(const permutation &per) const;
+		bool operator>=(const permutation &per) const;
+		bool operator<=(const permutation &per) const;
+		bool operator>(const permutation &per) const;
+		bool operator<(const permutation &per) const;
+
+
+		const unsigned &operator[](std::size_t index) const;
+
+		permutation inverse() const;
+		void operator()(unsigned* values);
+		void operator()(unsigned* values) const;
+		~permutation(){}
+};  
+
+template<std::size_t N>
+permutation<N>::permutation(){
+	for(std::size_t i = 0; i < N; ++i){
+		Array[i] = i;
+    }
+}
+
+template<std::size_t N>
+permutation<N>::permutation(unsigned *array){
+	for(std::size_t i = 0; i < N; ++i){
+		Array[i] = array[i];
+    }
+}
+
+template<std::size_t N>
+permutation<N>::permutation(const permutation<N> &per){
+	for(std::size_t i = 0; i < N; ++i){
+		Array[i] = per[i];
+    }
+}
+
+template<std::size_t N>
+permutation<N>& permutation<N>::operator=(const permutation<N> &per){
+	for(std::size_t i = 0; i < N; ++i){
+		Array[i] = per[i];
+    }
+}
+//t1
+template <std::size_t N>
+const unsigned &permutation<N>::operator[](std::size_t index) const{
+	return Array[index];
+}
+
+
+template<std::size_t N>
+permutation<N> &permutation<N>::operator++()
+
+{
+std::size_t i = N-1;
+std::size_t j = N-1;
+
+while(i > 0 && Array[i-1] >= Array[i]) --i;
+
+if(i == 0)
+
+{
+	this->inverse();
+   	return this;
+}
+
+while(Array[j] <= Array[i-1]) --j;
+
+swap(Array[i-1], Array[j]);
+
+for(std::size_t k = i; i < N;++i)
+
+{
+
+	swap(Array[k], Array[N-1]);
+}
+
+return permutation<N>{Array};
+}
+
+template<std::size_t N>
+permutation<N> permutation<N>::operator++(int){
+
+}
+
+template<std::size_t N>
+permutation<N> &permutation<N>::operator--()
+
+{
+std::size_t i = N-1;
+
+std::size_t j = N-1;
+
+std::size_t per; 
+
+while(i > 0 && Array[i-1] <= Array[i]) --i;
+
+if(i == 0)
+
+{
+
+    this->inverse();
+    return this;
+    
+}
+
+for(std::size_t k = i; i < N;++k)
+
+{
+
+	swap(Array[k], Array[N-1]);
+}
+
+j=i;
+
+while(Array[i] <= Array[j+1]) ++j;
+///return
+swap(Array[i], Array[j+1]);
+
+return *this;
+/////return 
+}
+
+template<std::size_t N>
+bool permutation<N>::operator==(const permutation<N> &per) const
+{
+	for(std::size_t i = 0; i <N; ++i)
+	
+	{
+
+    	if(Array[i]!= per[i]){
+
+    		return false;
+    	}
+    }
+
+	return true;
+}
+
+template<std::size_t N>
+bool permutation<N>::operator!=(const permutation<N> &per) const
+{
+	for(std::size_t i = 0; i <N; ++i)
+	{
+// for fucntion to define the operator!
+    	if(Array[i] != per[i]){
+			
+    		return true;
+   		}
+    }
+
+	return false;
+}
+
+template<std::size_t N>
+bool permutation<N>::operator>=(const permutation<N> &per) const
+{
+	for(std::size_t i = 0; (i <N); ++i)
+	{
+		if(Array[i] < per[i]){
+    		return false;
+        }
+
+    	if(Array[i] > per[i]){
+      		return true;
+    	}
+    }
+	return true;
+}
+
+template<std::size_t N>
+bool permutation<N>::operator<=(const permutation<N> &per) const
+{	
+	for(std::size_t i = 0; (i <N); ++i)
+	{
+		if(Array[i] > per[i]){
+    		return false;
+        }
+
+    	if(Array[i] < per[i]){
+      		return true;
+    	}
+    }
+	return true;
+}
+
+template<std::size_t N>
+bool permutation<N>::operator>(const permutation<N> &per) const
+{
+	for(std::size_t i = 0; i <N; ++i)
+	{
+
+		if(Array[i] < per[i]){
+
+    		return false;
+        }
+		if(Array[i] > per[i]){
+// false check
+    		return true;
+    	}
+    }
+
+	return false;
+}
+
+template<std::size_t N>
+bool permutation<N>::operator<(const permutation<N> &per) const
+{
+	for(std::size_t i = 0; i <N; ++i)
+	{
+		if(Array[i] > per[i]){
+
+    		return false;
+    	}
+		if(Array[i] < per[i]){
+
+    		return true;
+    	}
+		
+	}
+
+	return false;
+}
+
+template<std::size_t N>
+void permutation<N>::operator()(unsigned *values)
+{
+	unsigned ar[N];
+  for(std::size_t i = 0; i < N;++i){
+
+    ar[Array[i]] = values[i];
+  }
+  for(std::size_t i = 0; i < N;++i){
+
+    values[i] = ar[i];
+  }
+}
+
+template<std::size_t N>
+void permutation<N>::operator()(unsigned *values) const
+{
+	unsigned ar[N];
+	for(std::size_t i = 0; i < N;++i){
+
+    	ar[Array[i]] = values[i];
+    }
+	for(std::size_t i = 0; i < N;++i){
+
+    	values[i] = ar[i];
+    }
+}
+
+template<std::size_t N>
+permutation<N> permutation<N>::operator*(const permutation<N> &per)const
+{
+	unsigned ar[N];
+	for(std::size_t i = 0; i < N; ++i)
+	
+	{
+
+    	ar[i] = Array[per[i]];
+    }
+	return permutation<N>{ar};
+}
+
+template<std::size_t N>
+permutation<N>& permutation<N>::operator*=(const permutation<N> &per){
+	unsigned ar[N];
+	for(std::size_t i = 0; i < N; ++i){
+
+    	ar[i] = Array[per[i]];
+	}
+	for(std::size_t i = 0; i < N; ++i){
+
+   		Array[i] = ar[i];
+	}
+  return *this;
+}
+
+template<std::size_t N>
+permutation<N> permutation <N>::inverse() const
+
+{
+	unsigned ar[N];
+	for(std::size_t i =0; i <N ;++i)
+	
+	{
+		
+		ar[Array[i]] = i;
+    } 
+	return permutation<N>{ar};
+}
+
+#endif
