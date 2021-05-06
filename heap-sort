@@ -1,0 +1,75 @@
+#include <vector>
+
+template <typename T, typename Compare = std::greater<T>>
+class HeapSort {
+public:
+    explicit HeapSort(Compare comp = Compare()) : comp_{comp} {
+    }
+
+    // Function get a vector by reference and sort it.
+    void operator()(std::vector<T>& array, int i, int size_{
+      int largest, l = (2*i) + 1, r = l + 1;
+      
+      if(l < size_ && array[l] > array[i])
+        largest = l;
+      else
+          largest = i;
+
+     if(r < size_ && array[r] > array[largest])
+          largest = r;
+
+     if(largest != i)
+     {
+       std::swap(arr[i], arr[largest]);
+       operator(array, largest, size_);
+       }
+}
+
+void build_max_heap(std::vector<int>& array)
+{
+  for(int i = (array.size() / 2); i >= 0; i--)
+    operator(array, i, array.size());
+    }
+}
+
+
+}
+private:
+    // Make a heap on an array in O(n)
+    void MakeHeap(std::vector<T>& array) {
+      build_max_heap(array);
+      int sz = array.size();
+      for(int i = array.size() - 1; i > 0; i--){
+        std::swap(array[0], array[i]);
+        sz--;
+        operator(array, 0, sz);
+        }
+}
+    // Push the element in position index up
+    void SiftDown(std::vector<T>& array, size_t index, size_t heap_size) {
+ 
+    }
+
+    size_t GetLeftChild(size_t index) const {
+        return 2 * index + 1;
+    }
+
+    size_t GetRightChild(size_t index) const {
+        return 2 * index + 2;
+    }
+
+    size_t GetParent(size_t index) const {
+        return (index + 1) / 2 - 1;
+    }
+
+    bool HasLeftChild(size_t index, size_t heap_size) const {
+        return 2 * index + 1 < heap_size;
+    }
+
+    bool HasRightChild(size_t index, size_t heap_size) const {
+        return 2 * index + 2 < heap_size;
+    }
+
+private:
+    Compare comp_;
+};
