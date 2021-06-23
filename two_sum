@@ -1,0 +1,38 @@
+#include <vector>
+#include <unordered_set>
+#include <iostream>
+
+using std::vector;
+
+int main() {
+    int vec, vecs, valuec;
+    int res = 0;
+    std::cin >> vec;
+    std::vector<int> dec(vec);
+    for(size_t i = 0; i < vec; i++) {
+        std::cin >> dec[i];
+    }
+    std::cin >> vecs;
+    std::vector<int> oc(vecs);
+    for(size_t i = 0; i < vecs; i++) {
+        std::cin >> oc[i];
+    }
+    std::cin >> valuec;
+
+    for (size_t i = 0; i < vecs; i++) {
+        dec.push_back(oc[i]);      
+    }
+    vec += vecs;
+
+    std::unordered_set<int> map;
+    for (size_t i = 0; i < (vec - vecs); i++) {
+        map.insert(dec[i]);
+    }
+    for (size_t i = (vec - vecs); i < vec; i++){
+        auto it = map.find(valuec - dec[i]);
+        if (it != map.end()){
+            res += 1;
+        }
+    } 
+    std::cout << res << std::endl;
+}
