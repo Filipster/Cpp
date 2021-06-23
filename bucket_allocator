@@ -1,0 +1,62 @@
+#include <vector>   // for using vector 
+template <typename T>
+class bucket_allocator {
+private:
+    int _threshold_size;
+ 
+    struct bucket {
+        T* _bucket_address;
+        int _bucket_size;
+        int _allocated_objs;
+        int _deallocated_objs;
+ 
+        bucket()
+            : _bucket_address(nullptr), _allocated_objs(0), _deallocated_objs(0), _bucket_size(0) {
+        }
+    };
+ 
+    std::vector<bucket> _buckets;
+ 
+public:
+    typedef T value_type;
+    explicit bucket_allocator(const size_t bucket_size = 1024) : _threshold_size(bucket_size) {
+    }
+    bucket_allocator& operator=(const bucket_allocator&) = delete;
+    bucket_allocator(const bucket_allocator&) = delete;
+    ~bucket_allocator() = default;
+ 
+    void deallocate(T* ptr, const size_t n) noexcept {
+        for (size_t i = 0; i < _buckets.size(); i++) {
+            if ((ptr <= _buckets[i]._bucket_address + _buckets[i]._bucket_size) &&
+                (ptr >= _buckets[i]._bucket_address)) {
+                _buckets[i]._deallocated_objs += n;
+                if (_buckets[i]._allocated_objs == _buckets[i]._deallocated_objs) {
+                    delete[] reinterpret_cast<char*>(_buckets[i]._bucket_address);
+                }
+            }
+        }
+        for (size_t j = 0; j < _buckets.size(); j++) {
+            if (_buckets[j]._allocated_objs == _buckets[j]._deallocated_objs) {
+                _buckets.erase(_buckets.begin() + j);
+            }
+        }
+    }
+ 
+    T* allocate(const size_t n) {
+        for (size_t i = 0; i < _buckets.size(); i++) {
+            if (_buckets[i]._allocated_objs + n <= _buckets[i]._bucket_size) {
+                T* new_address = _buckets[i]._bucket_address + _buckets[i]._allocated_objs;
+                _buckets[i]._allocated_objs += n;
+                return new_address;
+            }
+        }
+        bucket next_bucket;
+        next_bucket._bucket_size = (n > _threshold_size) ? n : _threshold_size;
+        next_bucket._bucket_address =
+            reinterpret_cast<T*>(new char[sizeof(T) * next_bucket._bucket_size]);
+        T* new_address = next_bucket._allocated_objs + next_bucket._bucket_address;
+        next_bucket._allocated_objs += n;
+        _buckets.push_back(next_bucket);
+        return new_address;
+    }
+};
